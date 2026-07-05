@@ -1,7 +1,7 @@
 /* RankTheBaller — service worker
    Caches the self-contained game so it loads instantly and works offline.
    Bump CACHE_VERSION whenever you upload a new index.html to force an update. */
-const CACHE_VERSION = 'rtb-v18';
+const CACHE_VERSION = 'rtb-v19';
 const CORE = [
   './',
   './index.html',
