@@ -1,7 +1,7 @@
 /* RankTheBaller — service worker
    Caches the self-contained game so it loads instantly and works offline.
    Bump CACHE_VERSION whenever you upload a new index.html to force an update. */
-const CACHE_VERSION = 'rtb-v17';
+const CACHE_VERSION = 'rtb-v18';
 const CORE = [
   './',
   './index.html',
@@ -30,22 +30,25 @@ self.addEventListener('activate', (event) => {
 });
 
 // Fetch: cache-first for same-origin GETs, network fallback.
+// (Three.js is bundled inside index.html, so there are no cross-origin deps to worry about.)
 self.addEventListener('fetch', (event) => {
   const req = event.request;
   if (req.method !== 'GET') return;
   const url = new URL(req.url);
-  if (url.origin !== self.location.origin) return;
+  if (url.origin !== self.location.origin) return; // let cross-origin requests pass straight through
 
   event.respondWith(
     caches.match(req).then((cached) => {
       if (cached) return cached;
       return fetch(req).then((res) => {
+        // cache successful navigations/assets as they're fetched
         if (res && res.status === 200 && res.type === 'basic') {
           const copy = res.clone();
           caches.open(CACHE_VERSION).then((cache) => cache.put(req, copy));
         }
         return res;
       }).catch(() => {
+        // offline fallback: if it's a navigation, serve the cached game
         if (req.mode === 'navigate') return caches.match('./index.html');
       });
     })
