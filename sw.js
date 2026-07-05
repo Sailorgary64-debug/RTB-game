@@ -6,10 +6,10 @@ const CORE = [
   './',
   './index.html',
   './manifest.json',
-  './icons/icon-192.png',
-  './icons/icon-512.png',
-  './icons/icon-maskable-192.png',
-  './icons/icon-maskable-512.png'
+  './icon-192.png',
+  './icon-512.png',
+  './icon-maskable-192.png',
+  './icon-maskable-512.png'
 ];
 
 // Install: pre-cache the core shell.
@@ -30,25 +30,22 @@ self.addEventListener('activate', (event) => {
 });
 
 // Fetch: cache-first for same-origin GETs, network fallback.
-// (Three.js is bundled inside index.html, so there are no cross-origin deps to worry about.)
 self.addEventListener('fetch', (event) => {
   const req = event.request;
   if (req.method !== 'GET') return;
   const url = new URL(req.url);
-  if (url.origin !== self.location.origin) return; // let cross-origin requests pass straight through
+  if (url.origin !== self.location.origin) return;
 
   event.respondWith(
     caches.match(req).then((cached) => {
       if (cached) return cached;
       return fetch(req).then((res) => {
-        // cache successful navigations/assets as they're fetched
         if (res && res.status === 200 && res.type === 'basic') {
           const copy = res.clone();
           caches.open(CACHE_VERSION).then((cache) => cache.put(req, copy));
         }
         return res;
       }).catch(() => {
-        // offline fallback: if it's a navigation, serve the cached game
         if (req.mode === 'navigate') return caches.match('./index.html');
       });
     })
